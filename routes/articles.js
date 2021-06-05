@@ -76,4 +76,19 @@ router.post('/comments/fetch', async (req, res) => {
     return res.json({code: 200, message: 'success', content: comments})
 })
 
+router.post('/comments/update', async (req, res) => {
+    // update comment status
+	const {commentID, status} = req.body;
+    const doc = await db.commentModel.updateOne({_id: commentID}, {status: status});
+    
+    if(doc){
+		return res.json({
+			code: 200,
+			msg: "update comment success",
+		})
+    }
+    return res.json({code: 404, message: 'update comment faliure'})
+})
+
+
 module.exports = router;
