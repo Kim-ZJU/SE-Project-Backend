@@ -3,14 +3,9 @@ const router = express.Router();
 const db = require('../core/database');
 
 /* GET users listing. */
-router.get('/', function (req, res, next) {
+router.get('/', async (req, res) => {
 	res.send('ARTICLES: respond with a resource');
 });
-
-router.post('/', async (req, res) => {
-    res.send('ARTICLES: test post');
-    // return res.json({code: 400, message: 'bad req'})
-})
 
 router.get('/init', async (req, res, next) => {
     const article = await db.articleModel.find({}).limit(10);
@@ -52,11 +47,33 @@ router.post('/insert', async function (req, res, next) {
 	const doc = await db.articleModel({title, tag, date, image, article_content}).save();
     console.log(req.body)
     if(doc){
-		res.json({
-			code: 0,
+		return res.json({
+			code: 200,
 			msg: "success",
 		})
-	}
+    }
 });
+
+router.post('/comments/insert', async function (req, res, next) {
+    const {articleID, user, date, context, status} = req.body;
+	const doc = await db.commentModel({articleID, user, date, context, status}).save();
+    console.log(req.body)
+    if(doc){
+		return res.json({
+			code: 200,
+			msg: "insert comment success",
+		})
+    }
+    return res.json({code: 404, message: 'insert comment faliure'})
+})
+
+router.post('/comments/fetch', async (req, res) => {
+    // fetch unreviewed comments
+	const comments = await db.commentModel.find({status: 0});
+	if (!comments.length) {
+		return res.json({code: 404, message: 'no unreviewed comments'})
+    }
+    return res.json({code: 200, message: 'success', content: comments})
+})
 
 module.exports = router;
