@@ -66,6 +66,45 @@ router.get('/fetchUserInfo', async function (req, res, next) {
 	)
 });
 
+router.post('/update', async (req, res) => {
+	const {body} = req;
+	const {token} = req.headers;
+	let v;
+	try {
+		v = await verify(token);
+	} catch (e) {
+
+	}
+	const {phoneNumber} = v;
+	const user = await db.userModel.findOneAndUpdate({phoneNumber}, {...body});
+	return res.json(
+		{
+			code: 0,
+			message: 'success'
+		}
+	)
+});
+
+router.post('/healthfile/update', async (req, res) => {
+	const {body} = req;
+	const {token} = req.headers;
+	let v;
+	try {
+		v = await verify(token);
+	} catch (e) {
+
+	}
+	const {phoneNumber} = v;
+	const user = await db.userModel.findOneAndUpdate({phoneNumber}, {...body});
+	return res.json(
+		{
+			code: 0,
+			message: 'success'
+		}
+	)
+});
+
+
 router.post('/insert', async function (req, res, next) {
 	const {name, studentId, gender, campus, dormitory, room, phoneNumber, password} = req.body;
 	const doc = await db.userModel({name, studentId, gender, campus, dormitory, room, phoneNumber, password}).save();
@@ -75,6 +114,23 @@ router.post('/insert', async function (req, res, next) {
 			msg: "success",
 		})
 	}
+});
+
+router.get('/healthfile/fetch', async (req, res) => {
+	const {token} = req.headers;
+	let v;
+	try {
+		v = await verify(token);
+	} catch (e) {
+
+	}
+	const {phoneNumber} = v;
+	const user = await db.userModel.findOne({phoneNumber});
+	return res.json({
+		code: 0,
+		msg: 'success',
+		data: user
+	})
 });
 
 module.exports = router;
