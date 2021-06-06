@@ -53,6 +53,48 @@ router.post('/insert', async function (req, res, next) {
     }
 });
 
+router.post('/get_by_id', async (req, res) => {
+    const {articleID} = req.body
+    console.log(req.body)
+	const article = await db.articleModel.findOne({_id: articleID});
+	if (!article) {
+		return res.json({code: 404, message: 'file not existed'})
+    }
+    return res.json({code: 200, message: 'success', content: article})
+})
+
+router.post('/mask', async function (req, res, next) {
+    const {token} = req.headers;
+	let v;
+	try {
+		v = await verify(token);
+	} catch (e) {
+
+	}
+	const {phoneNumber} = v;
+    const user = await db.userModel.findOne({phoneNumber});
+
+    const {articleID} = req.body;
+    article = await db.articleModel.findOne({_id: articleID})
+
+    // console.log(user)
+
+    //! update user mark list 
+    if (! user.mask.includes(article._id))
+        user.mask.push(article._id)
+    console.log(user.mask)
+    const doc = await db.userModel(user).save();
+
+    if(doc){
+        console.log(doc)
+        return res.json({
+            code: 200,
+            msg: "success",
+        })
+    }
+    
+    return res.json({code: 404, message: 'like faliure'})
+});
 router.post('/like', async function (req, res, next) {
     const {token} = req.headers;
 	let v;
@@ -75,7 +117,8 @@ router.post('/like', async function (req, res, next) {
 
     if(doc){
         //! update user likes list 
-        user.collections.push(article._id)
+        if (! user.collections.includes(article._id))
+            user.collections.push(article._id)
         // console.log(user.collections)
         const udoc = await db.userModel(user).save();
 

@@ -25,8 +25,10 @@ const userSchema = new Schema({
 	allergy: {type: String, enum: ['是', '否', '不详']},
 	inheritance: {type: String, enum: ['是', '否', '不详']},
 
-	collections: [{type: Schema.Types.ObjectId,ref: 'article'}]
-
+	collections: [{type: Schema.Types.ObjectId,ref: 'article'}], // likes
+	mask: [{type: Schema.Types.ObjectId,ref: 'article'}], // mask
+	favorites: [{type: Schema.Types.ObjectId,ref: 'article'}] // favorites
+	
 });
 
 
