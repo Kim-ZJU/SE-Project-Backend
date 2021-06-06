@@ -69,15 +69,62 @@ router.post('/insert', async function (req, res, next) {
 });
 
 router.post('/get_by_id', async (req, res) => {
+    const {token} = req.headers;
+	let v;
+	try {
+		v = await verify(token);
+	} catch (e) {
+
+	}
+	const {phoneNumber} = v;
+    const user = await db.userModel.findOne({phoneNumber});
+
     const {articleID} = req.body
     console.log(req.body)
 	const article = await db.articleModel.findOne({_id: articleID});
 	if (!article) {
 		return res.json({code: 404, message: 'file not existed'})
     }
-
-    return res.json({code: 200, message: 'success', content: article})
+    like = user.collections.includes(articleID)
+    favorite = user.favorite.includes(articleID)
+    mask = user.mask.includes(articleID)
+    
+    return res.json({code: 200, message: 'success', content: article, 
+        is_like:like, is_favorite:favorite, is_mask:mask})
 })
+
+router.post('/favorite', async function (req, res, next) {
+    const {token} = req.headers;
+	let v;
+	try {
+		v = await verify(token);
+	} catch (e) {
+
+	}
+	const {phoneNumber} = v;
+    const user = await db.userModel.findOne({phoneNumber});
+
+    const {articleID} = req.body;
+    article = await db.articleModel.findOne({_id: articleID})
+
+    // console.log(user)
+
+    //! update user favorite list 
+    if (! user.favorite.includes(article._id))
+        user.favorite.push(article._id)
+    console.log(user.favorite)
+    const doc = await db.userModel(user).save();
+
+    if(doc){
+        console.log(doc)
+        return res.json({
+            code: 200,
+            msg: "favorite success",
+        })
+    }
+    
+    return res.json({code: 404, message: 'favorite faliure'})
+});
 
 router.post('/mask', async function (req, res, next) {
     const {token} = req.headers;

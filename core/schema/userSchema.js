@@ -27,7 +27,7 @@ const userSchema = new Schema({
 
 	collections: [{type: Schema.Types.ObjectId,ref: 'article'}], // likes
 	mask: [{type: Schema.Types.ObjectId,ref: 'article'}], // mask
-	favorites: [{type: Schema.Types.ObjectId,ref: 'article'}] // favorites
+	favorite: [{type: Schema.Types.ObjectId,ref: 'article'}] // favorites
 	
 });
 
