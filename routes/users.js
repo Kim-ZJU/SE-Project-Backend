@@ -66,6 +66,20 @@ router.get('/fetchUserInfo', async function (req, res, next) {
 	)
 });
 
+router.get('/fetchCollections', async (req, res) => {
+	const {token} = req.headers;
+	let v;
+	try {
+		v = await verify(token);
+	} catch (e) {
+
+	}
+	const {phoneNumber} = v;
+
+	const articles = await db.userModel.findOne({phoneNumber}).populate('collections');
+	return res.json({code: 200, message: 'success', content: articles.collections});
+});
+
 router.post('/update', async (req, res) => {
 	const {body} = req;
 	const {token} = req.headers;
