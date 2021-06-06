@@ -45,7 +45,6 @@ router.post('/search', async (req, res) => {
 router.post('/insert', async function (req, res, next) {
 	const {title, tag, date, image, article_content} = req.body;
 	const doc = await db.articleModel({title, tag, date, image, article_content,likes:0}).save();
-    console.log({title, tag, date, image, article_content, likes:0})
     if(doc){
         console.log(doc)
 		return res.json({
