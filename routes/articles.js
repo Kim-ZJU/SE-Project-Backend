@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../core/database');
+const { sign, verify } = require('../core/jwt');
 
 /* GET users listing. */
 router.get('/', async (req, res) => {
