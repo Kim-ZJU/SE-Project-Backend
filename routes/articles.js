@@ -8,11 +8,26 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/init', async (req, res, next) => {
+    const {token} = req.headers;
+	let v;
+	try {
+		v = await verify(token);
+	} catch (e) {
+
+	}
+	const {phoneNumber} = v;
+    const user = await db.userModel.findOne({phoneNumber});
+
     const article = await db.articleModel.find({}).limit(10);
     if (!article.length) {
         return res.json({code: 404, message: 'not enough data'})
     }
-    console.log(article)
+    for(var i = 0; i < article.length; i++){
+        if (user.mask.includes(article[i]._id)){
+            article.splice(i, 1);
+        }
+    }
+    // console.log(user.mask)
     return res.json({code: 200, message: 'success', content: article})
 });
 
@@ -60,6 +75,7 @@ router.post('/get_by_id', async (req, res) => {
 	if (!article) {
 		return res.json({code: 404, message: 'file not existed'})
     }
+
     return res.json({code: 200, message: 'success', content: article})
 })
 
@@ -89,11 +105,11 @@ router.post('/mask', async function (req, res, next) {
         console.log(doc)
         return res.json({
             code: 200,
-            msg: "success",
+            msg: "mask success",
         })
     }
     
-    return res.json({code: 404, message: 'like faliure'})
+    return res.json({code: 404, message: 'mask faliure'})
 });
 router.post('/like', async function (req, res, next) {
     const {token} = req.headers;
@@ -105,8 +121,6 @@ router.post('/like', async function (req, res, next) {
 	}
 	const {phoneNumber} = v;
     const user = await db.userModel.findOne({phoneNumber});
-    // const user = await db.userModel.findOne({phoneNumber:"1"});
-    // console.log(user)
 
     //! update article likes
     const {articleID, status} = req.body;
