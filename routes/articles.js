@@ -16,6 +16,16 @@ router.get('/init', async (req, res, next) => {
     return res.json({code: 200, message: 'success', content: article})
 });
 
+router.post('/test', async (req, res) => {
+    console.log(req.body)
+	const article = await db.articleModel.find();
+	if (!article.length) {
+		return res.json({code: 404, message: 'file not existed'})
+    }    
+    if (article.length == 1)
+        console.log(article[0].likes)
+    return res.json({code: 200, message: 'success', content: article})
+})
 router.post('/fetch', async (req, res) => {
     const {title} = req.body
     console.log(req.body)
@@ -23,7 +33,6 @@ router.post('/fetch', async (req, res) => {
 	if (!article.length) {
 		return res.json({code: 404, message: 'file not existed'})
     }
-    // console.log(article)
     return res.json({code: 200, message: 'success', content: article})
 })
 
@@ -53,6 +62,35 @@ router.post('/insert', async function (req, res, next) {
 		})
     }
 });
+
+router.post('/like', async function (req, res, next) {
+    // const {token} = req.headers;
+	// let v;
+	// try {
+	// 	v = await verify(token);
+	// } catch (e) {
+
+	// }
+	// const {phoneNumber} = v;
+    // const user = await db.userModel.findOne({phoneNumber});
+    
+    const {articleID, status} = req.body;
+    article = await db.articleModel.find({_id: articleID})
+    if (article.length == 1){
+        new_likes = article[0].likes + 1
+        console.log(new_likes)
+        const doc = await db.articleModel.updateOne({_id: articleID}, {likes: new_likes});
+        if(doc){
+            console.log(doc)
+            return res.json({
+                code: 200,
+                msg: "success",
+            })
+        }
+    }
+    return res.json({code: 404, message: 'like faliure'})
+});
+
 
 router.post('/comments/insert', async function (req, res, next) {
     const {articleID, user, date, context, status} = req.body;
