@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../core/database');
+const { verify } = require('../core/jwt');
 
 /* GET users listing. */
 router.get('/', async (req, res) => {
@@ -12,11 +13,11 @@ router.get('/init', async (req, res, next) => {
 	let v;
 	try {
 		v = await verify(token);
-	} catch (e) {
+    } catch (e) {
 
 	}
 	const {phoneNumber} = v;
-    const user = await db.userModel.findOne({phoneNumber});
+	const user = await db.userModel.findOne({phoneNumber});
 
     const article = await db.articleModel.find({}).limit(10);
     if (!article.length) {
@@ -27,7 +28,7 @@ router.get('/init', async (req, res, next) => {
             article.splice(i, 1);
         }
     }
-    // console.log(user.mask)
+    console.log(user.mask)
     return res.json({code: 200, message: 'success', content: article})
 });
 
