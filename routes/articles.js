@@ -86,34 +86,6 @@ router.post('/insert', async function (req, res, next) {
     }
 });
 
-router.post('/get_by_name', async (req, res) => {
-    const {token} = req.headers;
-	let v;
-	try {
-		v = await verify(token);
-	} catch (e) {
-
-	}
-	const {phoneNumber} = v;
-    const user = await db.userModel.findOne({phoneNumber});
-
-    const {title} = req.body
-    console.log(req.body)
-	const article = await db.articleModel.findOne({title: title});
-	if (!article) {
-		return res.json({code: 404, message: 'file not existed'})
-    }
-    like = user.collections.includes(article._id)
-    favorite = user.favorite.includes(article._id)
-    mask = user.mask.includes(article._id)
-
-    // get comments
-	const comments = await db.commentModel.find({articleID: article._id});
-    
-    return res.json({code: 200, message: 'success', content: article, 
-        is_like:like, is_favorite:favorite, is_mask:mask, comments: comments})
-})
-
 router.post('/get_by_id', async (req, res) => {
     const {token} = req.headers;
 	let v;
