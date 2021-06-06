@@ -13,11 +13,11 @@ router.get('/init', async (req, res, next) => {
 	let v;
 	try {
 		v = await verify(token);
-	} catch (e) {
+    } catch (e) {
 
 	}
 	const {phoneNumber} = v;
-    const user = await db.userModel.findOne({phoneNumber});
+	const user = await db.userModel.findOne({phoneNumber});
 
     const article = await db.articleModel.find({}).limit(10);
     if (!article.length) {
