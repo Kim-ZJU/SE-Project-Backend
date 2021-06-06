@@ -16,16 +16,6 @@ router.get('/init', async (req, res, next) => {
     return res.json({code: 200, message: 'success', content: article})
 });
 
-router.post('/test', async (req, res) => {
-    console.log(req.body)
-	const article = await db.articleModel.find();
-	if (!article.length) {
-		return res.json({code: 404, message: 'file not existed'})
-    }    
-    if (article.length == 1)
-        console.log(article[0].likes)
-    return res.json({code: 200, message: 'success', content: article})
-})
 router.post('/fetch', async (req, res) => {
     const {title} = req.body
     console.log(req.body)
@@ -64,24 +54,33 @@ router.post('/insert', async function (req, res, next) {
 });
 
 router.post('/like', async function (req, res, next) {
-    // const {token} = req.headers;
-	// let v;
-	// try {
-	// 	v = await verify(token);
-	// } catch (e) {
+    const {token} = req.headers;
+	let v;
+	try {
+		v = await verify(token);
+	} catch (e) {
 
-	// }
-	// const {phoneNumber} = v;
-    // const user = await db.userModel.findOne({phoneNumber});
-    
+	}
+	const {phoneNumber} = v;
+    const user = await db.userModel.findOne({phoneNumber});
+    // const user = await db.userModel.findOne({phoneNumber:"1"});
+    // console.log(user)
+
+    //! update article likes
     const {articleID, status} = req.body;
-    article = await db.articleModel.find({_id: articleID})
-    if (article.length == 1){
-        new_likes = article[0].likes + 1
-        console.log(new_likes)
-        const doc = await db.articleModel.updateOne({_id: articleID}, {likes: new_likes});
-        if(doc){
-            console.log(doc)
+    article = await db.articleModel.findOne({_id: articleID})
+    new_likes = article.likes + 1
+    // console.log(new_likes)
+    const doc = await db.articleModel.updateOne({_id: articleID}, {likes: new_likes});
+
+    if(doc){
+        //! update user likes list 
+        user.collections.push(article._id)
+        // console.log(user.collections)
+        const udoc = await db.userModel(user).save();
+
+        if(udoc){
+            // console.log(udoc)
             return res.json({
                 code: 200,
                 msg: "success",
