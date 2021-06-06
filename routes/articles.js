@@ -28,7 +28,6 @@ router.get('/init', async (req, res, next) => {
             article.splice(i, 1);
         }
     }
-    // console.log(user.mask)
     return res.json({code: 200, message: 'success', content: article})
 });
 
@@ -69,6 +68,34 @@ router.post('/insert', async function (req, res, next) {
     }
 });
 
+router.post('/get_by_name', async (req, res) => {
+    const {token} = req.headers;
+	let v;
+	try {
+		v = await verify(token);
+	} catch (e) {
+
+	}
+	const {phoneNumber} = v;
+    const user = await db.userModel.findOne({phoneNumber});
+
+    const {title} = req.body
+    console.log(req.body)
+	const article = await db.articleModel.findOne({title: title});
+	if (!article) {
+		return res.json({code: 404, message: 'file not existed'})
+    }
+    like = user.collections.includes(article._id)
+    favorite = user.favorite.includes(article._id)
+    mask = user.mask.includes(article._id)
+
+    // get comments
+	const comments = await db.commentModel.find({articleID: article._id});
+    
+    return res.json({code: 200, message: 'success', content: article, 
+        is_like:like, is_favorite:favorite, is_mask:mask, comments: comments})
+})
+
 router.post('/get_by_id', async (req, res) => {
     const {token} = req.headers;
 	let v;
@@ -105,14 +132,36 @@ router.post('/favorite', async function (req, res, next) {
 	const {phoneNumber} = v;
     const user = await db.userModel.findOne({phoneNumber});
 
-    const {articleID} = req.body;
+    const {articleID, status} = req.body;
     article = await db.articleModel.findOne({_id: articleID})
 
-    // console.log(user)
+    if(article.length == 0){
+        return res.json({code: 404, message: 'favorite faliure: no such file'})
+    }
 
     //! update user favorite list 
-    if (! user.favorite.includes(article._id))
-        user.favorite.push(article._id)
+    var flag = 0
+    if (status == 1) // mark
+    {
+        if (! user.favorite.includes(articleID)){
+            flag = 1
+            user.favorite.push(articleID)
+        }
+    }
+    else if (status == 0){ // unmark
+        for(var i = 0; i < user.favorite.length; i++){
+            if (user.favorite[i] == articleID){
+                user.favorite.splice(i, 1);
+                flag = 1;
+            }
+        }
+    }
+
+    if(!flag) return res.json({
+        code: 200,
+        msg: "success: no need to update",
+    })
+
     console.log(user.favorite)
     const doc = await db.userModel(user).save();
 
@@ -138,14 +187,36 @@ router.post('/mask', async function (req, res, next) {
 	const {phoneNumber} = v;
     const user = await db.userModel.findOne({phoneNumber});
 
-    const {articleID} = req.body;
+    const {articleID, status} = req.body;
     article = await db.articleModel.findOne({_id: articleID})
 
-    // console.log(user)
+    if(article.length == 0){
+        return res.json({code: 404, message: 'mask faliure: no such file'})
+    }
 
     //! update user mark list 
-    if (! user.mask.includes(article._id))
-        user.mask.push(article._id)
+    var flag = 0
+    if (status == 1) // mark
+    {
+        if (! user.mask.includes(articleID)){
+            flag = 1
+            user.mask.push(articleID)
+        }
+    }
+    else if (status == 0){ // unmark
+        for(var i = 0; i < user.mask.length; i++){
+            if (user.mask[i] == articleID){
+                user.mask.splice(i, 1);
+                flag = 1;
+            }
+        }
+    }
+
+    if(!flag) return res.json({
+        code: 200,
+        msg: "success: no need to update",
+    })
+
     console.log(user.mask)
     const doc = await db.userModel(user).save();
 
@@ -173,15 +244,46 @@ router.post('/like', async function (req, res, next) {
     //! update article likes
     const {articleID, status} = req.body;
     article = await db.articleModel.findOne({_id: articleID})
-    new_likes = article.likes + 1
+    if(article.length == 0){
+        return res.json({code: 404, message: 'mask faliure: no such file'})
+    }
+    var flag = 0
+    if (status == 1){
+        if (! user.collections.includes(article._id)){
+            new_likes = article.likes + 1
+            flag = 1
+        }
+    }
+    else{
+        if (user.collections.includes(article._id)){
+            new_likes = article.likes - 1
+            flag = 1
+        }   
+    }
     // console.log(new_likes)
+    if(!flag) return res.json({
+        code: 200,
+        msg: "success: no need to update",
+    })
+
     const doc = await db.articleModel.updateOne({_id: articleID}, {likes: new_likes});
 
     if(doc){
+        console.log(status)
         //! update user likes list 
-        if (! user.collections.includes(article._id))
-            user.collections.push(article._id)
-        // console.log(user.collections)
+        if (status == 1) // like
+        {
+            if (! user.collections.includes(article._id))
+                user.collections.push(article._id)
+        }
+        else if (status == 0){ // unlike
+            for(var i = 0; i < user.collections.length; i++){
+                if (user.collections[i] == articleID){
+                    user.collections.splice(i, 1);
+                }
+            }
+        }
+
         const udoc = await db.userModel(user).save();
 
         if(udoc){
